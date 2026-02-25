@@ -1,4 +1,4 @@
-package com.carrental.model;
+package com.carrental.enums;
 
 public enum CarType {
     SEDAN, SUV, VAN

@@ -1,5 +1,7 @@
 package com.carrental.model;
 
+import com.carrental.enums.CarStatus;
+import com.carrental.enums.CarType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,11 +16,18 @@ public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private CarType carType;
+    private String brand;
+    private String model;
+    private CarType type;
+    private CarStatus status;
 
-    public Car(String name, CarType carType) {
-        this.name = name;
-        this.carType = carType;
+    @Version
+    private Long version;
+
+    public Car(String brand, String model, CarType carType) {
+        this.brand = brand;
+        this.model = model;
+        this.type = carType;
+        this.status = CarStatus.AVAILABLE;
     }
 }
