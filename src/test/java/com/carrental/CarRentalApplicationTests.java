@@ -46,9 +46,6 @@ class CarRentalApplicationTests {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
-    @Autowired
-    private EntityManager entityManager;
-
     @AfterEach
     void cleanup() {
         carRentRepository.deleteAll();
@@ -156,7 +153,6 @@ class CarRentalApplicationTests {
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
         CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch task1ReadLatch = new CountDownLatch(1); // nowy
         CountDownLatch endLatch = new CountDownLatch(2);
 
 
@@ -170,8 +166,6 @@ class CarRentalApplicationTests {
                 txTemplate.execute(status -> {
                     CarRental response = carRentalService.rentCar(car1.getId(), client1.getId(), rentStartDate, rentDays);
                     successfulRentals.add(response);
-
-                    task1ReadLatch.countDown();
                     try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
                     return null;
@@ -186,7 +180,6 @@ class CarRentalApplicationTests {
         Runnable task2 = () -> {
             try {
                 startLatch.await();
-                task1ReadLatch.await();
                 TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
                 txTemplate.execute(status -> {
                     CarRental response = carRentalService.rentCar(car1.getId(), client2.getId(), rentStartDate2, rentDays2);
@@ -211,24 +204,20 @@ class CarRentalApplicationTests {
         assertThat(exceptions).hasSize(1);
 
         Exception exception = exceptions.getFirst();
-        assertThat(exception)
-                .satisfiesAnyOf(
-                        e -> assertThat(e).isInstanceOf(OptimisticLockException.class)
-                );
+        assertThat(exception).isInstanceOf(OptimisticLockException.class);
 
         Car car = carRepository.findById(car1.getId()).get();
         assertThat(car.getStatus()).isEqualTo(CarStatus.RENTED);
     }
 
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private Car addMockCar(String brand, String model, CarType carType) {
         var car = new Car(brand, model, carType);
-        return carRepository.saveAndFlush(car);
+        return carRepository.save(car);
     }
 
     private RentalClient addMockRentalClient(String name) {
         var client = new RentalClient(name);
-        return rentalClientRepository.saveAndFlush(client);
+        return rentalClientRepository.save(client);
     }
 
 }
