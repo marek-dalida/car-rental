@@ -6,12 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
@@ -41,11 +37,8 @@ public class CarRental {
 
     private LocalDate actualReturnDate;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
+    @Version
+    private Long version;
 
     public CarRental(Car car, RentalClient client, LocalDate startDate, Integer rentDays, RentalStatus status) {
         this.car = car;

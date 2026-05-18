@@ -1,18 +1,18 @@
 package com.carrental;
 
 import com.carrental.enums.CarStatus;
+import com.carrental.enums.CarType;
+import com.carrental.enums.RentalStatus;
 import com.carrental.exception.CarNotFoundException;
 import com.carrental.exception.CarUnavailableException;
 import com.carrental.exception.ClientNotFoundException;
 import com.carrental.model.Car;
-import com.carrental.enums.CarType;
 import com.carrental.model.CarRental;
 import com.carrental.model.RentalClient;
 import com.carrental.repository.CarRentalRepository;
 import com.carrental.repository.CarRepository;
 import com.carrental.repository.RentalClientRepository;
 import com.carrental.service.CarRentalService;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -155,7 +155,6 @@ class CarRentalApplicationTests {
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch endLatch = new CountDownLatch(2);
 
-
         List<CarRental> successfulRentals = new CopyOnWriteArrayList<>();
         List<Exception> exceptions = new CopyOnWriteArrayList<>();
 
@@ -208,6 +207,28 @@ class CarRentalApplicationTests {
 
         Car car = carRepository.findById(car1.getId()).get();
         assertThat(car.getStatus()).isEqualTo(CarStatus.RENTED);
+    }
+
+    @Test
+    void shouldReturnCar() {
+        var car = new Car("Mazda", "3", CarType.SEDAN);
+        car.setStatus(CarStatus.RENTED);
+        carRepository.save(car);
+        var client1 = addMockRentalClient("Jeffrey");
+        var rentStartDate = LocalDate.of(2026, 1, 10);
+        var carRentalEntity = new CarRental(car, client1, rentStartDate, 5, RentalStatus.CONFIRMED);
+        var carRent = carRentRepository.save(carRentalEntity);
+        car.setStatus(CarStatus.RENTED);
+        carRentalService.returnCar(carRent.getId());
+
+        var carAfterReturn = carRepository.findById(carRent.getId()).orElseThrow();
+        assertNotNull(carAfterReturn);
+        assertEquals(CarStatus.AVAILABLE, carAfterReturn.getStatus());
+
+        var carRentAfterReturn = carRentRepository.findById(carRent.getId()).orElseThrow();
+        assertNotNull(carRentAfterReturn);
+        assertEquals(RentalStatus.COMPLETED, carRentAfterReturn.getStatus());
+        assertNotNull(carRentAfterReturn);
     }
 
     private Car addMockCar(String brand, String model, CarType carType) {
