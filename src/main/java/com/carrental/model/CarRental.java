@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class CarRental {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     @ManyToOne
